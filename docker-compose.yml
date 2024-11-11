@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+
+  db:
+    image: kartoza/postgis:14-3.2
+    volumes:
+      - postgis-data:/var/lib/postgresql
+      - dbbackups:/backups
+      - ./db/setup-db.sql:/docker-entrypoint-initdb.d/setup-db.sql
+    environment:
+      - POSTGRES_DB=gis
+      - POSTGRES_USER=docker
+      - POSTGRES_PASS=docker
+      - ALLOW_IP_RANGE=0.0.0.0/0
+      # Image extensions
+      - POSTGRES_MULTIPLE_EXTENSIONS=postgis,hstore,postgis_topology,postgis_raster,pgrouting
+      - RUN_AS_ROOT=true
+    ports:
+      - "25432:5432"
+    restart: on-failure
+    healthcheck:
+      test: "PGPASSWORD=docker pg_isready -h 127.0.0.1 -U docker -d gis"
+
+volumes:
+  dbbackups:
+  postgis-data:

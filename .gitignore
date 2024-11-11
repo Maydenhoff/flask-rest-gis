@@ -1,0 +1,52 @@
+# Entorno virtual de Python
+venv/
+env/
+ENV/
+
+# Configuración de entornos de desarrollo
+*.env
+*.flaskenv
+
+# Archivos de compilación de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos de configuración de IDEs y editores de texto
+.vscode/
+.idea/
+*.swp
+
+# Dependencias instaladas
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
+pip-log.txt
+
+# Archivos de logs
+*.log
+
+# Archivos de base de datos locales
+*.sqlite3
+*.db
+
+# Archivos de migración de Flask-Migrate
+migrations/
+
+# Archivos de cache y profiling
+.cache/
+.pytest_cache/
+coverage.xml
+htmlcov/
+*.cover
+*.coverage
+.tox/
+
+# Archivos de configuración de Docker
+docker-compose.override.yml
+
+# Archivos de configuración para despliegue
+*.ini
+*.cfg
