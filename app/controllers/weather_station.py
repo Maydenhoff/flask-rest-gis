@@ -26,11 +26,11 @@ def create():
     errors = schema.validate(body)
 
     if errors:
-        return jsonify(errors), 400
+        return jsonify({"error": "Esquema invalido.", "errors_validation":errors}), 400
     
     name = body["name"]
     if (db.session.query(WeatherStation).filter_by(name = name ).first()):
-        return jsonify({"error":"Weather station ya existente con ese nombre."})
+        return jsonify({"error":"Weather station ya existente con ese nombre."}), 400
     
     data = schema.load(body)
     longitude = data["longitude"]
@@ -44,18 +44,21 @@ def create():
     db.session.commit()
 
 
-    return jsonify({"id": new_weather_station.id}), 201
+    return jsonify({
+        "message": "Weather Station creada exitosamente.",
+        "id": new_weather_station.id
+        }), 201
 
 
     
-@weather_station_bp.route("/update", methods=['PUT'])
+@weather_station_bp.route("/", methods=['PUT'])
 def update():
     body = request.get_json()
     schema = UpdateWeatherStationBodySchema()
     errors = schema.validate(body)
     
     if errors:
-        return jsonify(errors), 400
+        return jsonify({"error": "Esquema invalido.", "errors_validation":errors}), 400
 
     data = schema.load(body)
 
@@ -77,7 +80,7 @@ def update():
     return jsonify({"message": "Estacion metereologica actualizada con exito.", "id":weather_station.id})
 
 
-@weather_station_bp.route('/delete/<id>', methods=['DELETE'])
+@weather_station_bp.route('/delete/<int:id>', methods=['DELETE'])
 def delete(id):
     weather_station = db.session.query(WeatherStation).get(id)
     
@@ -92,22 +95,22 @@ def delete(id):
 
 
 
-@weather_station_bp.route("/nearest", methods=["GET"])
-def nearest():
-    longitude = request.args.get('long')
-    latitude = request.args.get('lat')
+@weather_station_bp.route("/nearest/<float:lat>,<float:long>", methods=["GET"])
+def nearest(lat, long):
     schema = GetNearestWeatherStationBodySchema()
-    errors = schema.validate({"longitude": float(longitude), "latitude": float(latitude)})
+    errors = schema.validate({"longitude": long, "latitude": lat})
     
     if errors:
-        return jsonify(errors), 400
+        return jsonify({"error": "Parametros invalidos.", "errors_validation":errors}), 400
 
-    data = schema.load({"longitude": float(longitude), "latitude": float(latitude)})
+    data = schema.load({"longitude": long, "latitude": lat})
 
     point= WKTElement(f"POINT({data['longitude']} {data['latitude']})", srid= 4326)
     
     nearest_station = db.session.query(WeatherStation).order_by(ST_Distance(WeatherStation.location, point)).first()
-    
+    if not nearest_station:
+        return jsonify({"error": "No se encontraron weather stations"}), 404
+
     response_schema = WeatherStationResponseSchema()
     print(nearest_station)
     response = response_schema.dump(nearest_station)
